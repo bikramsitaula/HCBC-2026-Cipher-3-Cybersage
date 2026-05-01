@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberSage — Cybersecurity Q&A</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D1B2A;
+      --sidebar-bg: #0a1520;
+      --accent: #02C39A;
+      --accent-dim: #019e7c;
+      --text: #e8edf2;
+      --text-muted: #8a9ab0;
+      --card-bg: #132233;
+      --card-border: #1e3048;
+      --high: #02C39A;
+      --medium: #f0a500;
+      --low: #e05252;
+      --warn: #f0a500;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
+    header h1 span { color: var(--accent); }
+    .header-sub { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
+
+    /* LAYOUT */
+    .app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 20px 16px;
+      gap: 16px;
+    }
+
+    .sidebar h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.88rem;
+      border: none;
+      border-radius: var(--radius);
+      padding: 11px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    .upload-btn:hover { background: var(--accent-dim); }
+    .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #file-input { display: none; }
+
+    .upload-progress {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .doc-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .doc-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-word;
+    }
+    .doc-item .doc-icon { color: var(--accent); flex-shrink: 0; }
+    .doc-empty { color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 20px 0; }
+
+    /* MAIN CHAT */
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* WELCOME */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 16px;
+      text-align: center;
+      padding: 40px;
+    }
+    .welcome-icon { font-size: 56px; }
+    .welcome h2 { font-size: 1.5rem; font-weight: 700; }
+    .welcome p { color: var(--text-muted); font-size: 0.92rem; max-width: 420px; line-height: 1.6; }
+    .welcome-chips {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px;
+    }
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* USER MESSAGE */
+    .msg-user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #000;
+      font-weight: 500;
+      border-radius: 16px 16px 4px 16px;
+      padding: 10px 16px;
+      max-width: 70%;
+      font-size: 0.92rem;
+    }
+
+    /* RESPONSE CARD */
+    .response-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      max-width: 800px;
+    }
+    .response-card.warn-card {
+      border-color: var(--warn);
+    }
+
+    .card-header {
+      background: #0f1e30;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .card-header .cybersage-label { color: var(--accent); font-weight: 700; }
+
+    .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+    .field-value { font-size: 0.9rem; line-height: 1.55; }
+
+    .confidence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .conf-High { background: rgba(2,195,154,0.15); color: var(--high); border: 1px solid var(--high); }
+    .conf-Medium { background: rgba(240,165,0,0.15); color: var(--medium); border: 1px solid var(--medium); }
+    .conf-Low { background: rgba(224,82,82,0.15); color: var(--low); border: 1px solid var(--low); }
+
+    .warn-banner {
+      background: rgba(240,165,0,0.12);
+      border-left: 3px solid var(--warn);
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .warn-banner .warn-icon { color: var(--warn); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+    .remediation-steps {
+      background: rgba(2,195,154,0.06);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    /* SPINNER */
+    .spinner-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--card-border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* INPUT BAR */
+    .input-bar {
+      background: var(--sidebar-bg);
+      border-top: 1px solid var(--card-border);
+      padding: 16px 24px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .input-wrap {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      padding: 2px 4px 2px 14px;
+      transition: border-color 0.2s;
+    }
+    .input-wrap:focus-within { border-color: var(--accent); }
+
+    #question-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.92rem;
+      padding: 10px 0;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.5;
+      font-family: inherit;
+    }
+    #question-input::placeholder { color: var(--text-muted); }
+
+    .send-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      width: 42px; height: 42px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .send-btn:hover { background: var(--accent-dim); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* TOAST */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+    .toast {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 0.84rem;
+      max-width: 320px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      animation: slide-in 0.25s ease;
+    }
+    .toast.success { border-left: 3px solid var(--accent); }
+    .toast.error { border-left: 3px solid var(--low); }
+    @keyframes slide-in { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🛡</div>
+  <h1>Cyber<span>Sage</span></h1>
+  <div class="header-sub">RAG-powered Cybersecurity Q&A &nbsp;·&nbsp; Connected to localhost:8000</div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <h2>Documents</h2>
+    </div>
+    <button class="upload-btn" id="upload-btn" onclick="document.getElementById('file-input').click()">
+      <span>&#8593;</span> Upload PDF
+    </button>
+    <input type="file" id="file-input" accept=".pdf" />
+    <div class="upload-progress" id="upload-progress">
+      <div class="spinner"></div>
+      <span id="upload-progress-text">Uploading…</span>
+    </div>
+
+    <h2>Loaded Documents</h2>
+    <div class="doc-list" id="doc-list">
+      <div class="doc-empty" id="doc-empty">No documents loaded yet</div>
+    </div>
+  </aside>
+
+  <!-- CHAT -->
+  <div class="chat-panel">
+    <div class="chat-messages" id="chat-messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🔐</div>
+        <h2>Ask CyberSage</h2>
+        <p>Upload cybersecurity PDFs and ask questions. Answers are grounded exclusively in your documents.</p>
+        <div class="welcome-chips">
+          <div class="chip" onclick="useChip(this)">What are SQL injection risks?</div>
+          <div class="chip" onclick="useChip(this)">How to prevent XSS attacks?</div>
+          <div class="chip" onclick="useChip(this)">What is OWASP Top 10?</div>
+          <div class="chip" onclick="useChip(this)">Explain broken access control</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="question-input" rows="1" placeholder="Ask a cybersecurity question…"></textarea>
+      </div>
+      <button class="send-btn" id="send-btn" title="Send" onclick="sendQuestion()">&#10148;</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const API = 'http://localhost:8000';
+  let sending = false;
+
+  // ── Auto-resize textarea ──────────────────────────────────────────
+  const textarea = document.getElementById('question-input');
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  });
+  textarea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); }
+  });
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  // ── Document list ─────────────────────────────────────────────────
+  async function loadDocuments() {
+    try {
+      const res = await fetch(`${API}/documents`);
+      if (!res.ok) return;
+      const data = await res.json();
+      renderDocList(data.documents || []);
+    } catch (_) {}
+  }
+
+  function renderDocList(docs) {
+    const list = document.getElementById('doc-list');
+    const empty = document.getElementById('doc-empty');
+    list.innerHTML = '';
+    if (!docs.length) {
+      list.appendChild(empty || (() => {
+        const d = document.createElement('div');
+        d.className = 'doc-empty'; d.id = 'doc-empty';
+        d.textContent = 'No documents loaded yet'; return d;
+      })());
+      return;
+    }
+    docs.forEach(name => {
+      const el = document.createElement('div');
+      el.className = 'doc-item';
+      el.innerHTML = `<span class="doc-icon">📄</span><span>${escHtml(name)}</span>`;
+      list.appendChild(el);
+    });
+  }
+
+  // ── File upload ───────────────────────────────────────────────────
+  document.getElementById('file-input').addEventListener('change', async function () {
+    const file = this.files[0];
+    if (!file) return;
+    this.value = '';
+
+    const btn = document.getElementById('upload-btn');
+    const progress = document.getElementById('upload-progress');
+    const progressText = document.getElementById('upload-progress-text');
+
+    btn.disabled = true;
+    progress.style.display = 'flex';
+    progressText.textContent = `Uploading ${file.name}…`;
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API}/upload`, { method: 'POST', body: fd });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(`Upload failed: ${data.detail || 'Unknown error'}`, 'error');
+      } else {
+        showToast(`✓ ${data.doc_name} — ${data.chunks_created} chunks ingested`, 'success');
+        loadDocuments();
+      }
+    } catch (err) {
+      showToast(`Upload error: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      progress.style.display = 'none';
+    }
+  });
+
+  // ── Chat ──────────────────────────────────────────────────────────
+  function useChip(el) {
+    textarea.value = el.textContent;
+    textarea.dispatchEvent(new Event('input'));
+    textarea.focus();
+  }
+
+  function hideWelcome() {
+    const w = document.getElementById('welcome');
+    if (w) w.remove();
+  }
+
+  function appendUserMessage(text) {
+    hideWelcome();
+    const el = document.createElement('div');
+    el.className = 'msg-user';
+    el.textContent = text;
+    document.getElementById('chat-messages').appendChild(el);
+    scrollBottom();
+  }
+
+  function appendSpinner() {
+    const el = document.createElement('div');
+    el.className = 'spinner-row';
+    el.id = 'spinner-row';
+    el.innerHTML = `<div class="spinner"></div><span>CyberSage is analyzing…</span>`;
+    document.getElementById('chat-messages').appendChild(el);
+    scrollBottom();
+  }
+
+  function removeSpinner() {
+    const s = document.getElementById('spinner-row');
+    if (s) s.remove();
+  }
+
+  function appendResponseCard(data) {
+    const msgs = document.getElementById('chat-messages');
+
+    if (data.insufficient_info) {
+      const card = document.createElement('div');
+      card.className = 'response-card warn-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="cybersage-label">CyberSage</span>
+          <span>·</span><span>Insufficient Information</span>
+        </div>
+        <div class="warn-banner">
+          <span class="warn-icon">⚠</span>
+          <div>${escHtml(data.risk_summary)}</div>
+        </div>`;
+      msgs.appendChild(card);
+      scrollBottom();
+      return;
+    }
+
+    const confClass = `conf-${data.confidence || 'Low'}`;
+    const card = document.createElement('div');
+    card.className = 'response-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="cybersage-label">CyberSage</span>
+        <span>·</span>
+        <span class="confidence-badge ${confClass}">
+          ${confidenceIcon(data.confidence)} ${escHtml(data.confidence || 'Low')} Confidence
+        </span>
+        ${data.source ? `<span style="margin-left:auto;color:var(--text-muted)">${escHtml(data.source)}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-field">
+          <div class="field-label">Risk Summary</div>
+          <div class="field-value">${escHtml(data.risk_summary)}</div>
+        </div>
+        <div class="card-field">
+          <div class="field-label">OWASP Reference</div>
+          <div class="field-value">${escHtml(data.owasp_reference || 'N/A')}</div>
+        </div>
+        <div class="card-field">
+          <div class="field-label">Remediation</div>
+          <div class="remediation-steps">${escHtml(data.remediation)}</div>
+        </div>
+      </div>`;
+    msgs.appendChild(card);
+    scrollBottom();
+  }
+
+  function confidenceIcon(conf) {
+    if (conf === 'High') return '●';
+    if (conf === 'Medium') return '◑';
+    return '○';
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/\n/g, '<br>');
+  }
+
+  function scrollBottom() {
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  async function sendQuestion() {
+    if (sending) return;
+    const q = textarea.value.trim();
+    if (!q) return;
+
+    sending = true;
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    document.getElementById('send-btn').disabled = true;
+
+    appendUserMessage(q);
+    appendSpinner();
+
+    try {
+      const res = await fetch(`${API}/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        removeSpinner();
+        showToast(`Error: ${data.detail || 'Query failed'}`, 'error');
+        return;
+      }
+
+      removeSpinner();
+      appendResponseCard(data);
+    } catch (err) {
+      removeSpinner();
+      showToast(`Connection error: ${err.message}`, 'error');
+    } finally {
+      sending = false;
+      document.getElementById('send-btn').disabled = false;
+      textarea.focus();
+    }
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  loadDocuments();
+  setInterval(loadDocuments, 10000);
+</script>
+</body>
+</html>
